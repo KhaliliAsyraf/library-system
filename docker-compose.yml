@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: php:8.3-fpm   # 👈 will pull PHP 8.3 FPM from Docker Hub
+    container_name: laravel-library-app
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html   # Mount project into container
+    ports:
+      - "9001:9000"
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: library-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: laravel
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  nginx:
+    image: nginx:alpine
+    container_name: laravel-nginx
+    ports:
+      - "8080:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - app
+
+volumes:
+  dbdata:
